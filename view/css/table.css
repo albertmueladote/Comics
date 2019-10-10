@@ -1,0 +1,16 @@
+table tr th, table tr td{
+	padding: 5px 10px;
+}
+
+table tr th{
+	background-color: #CDCDCD;
+}
+
+table tbody tr:nth-child(even){
+	background-color: #E8E8E8
+}
+
+table tbody tr:hover{
+	background-color: #CDCDCD;
+	cursor: pointer;
+}
