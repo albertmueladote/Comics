@@ -1,19 +1,23 @@
 <?php
 
-class status{
+class book{
 
-	CONST TABLE = 'status';
-	CONST DEFAULT_VALUE = 1;
+	CONST TABLE = 'book';
 	private $id;
 	private $title;
-
-	public function __construct($title = null)
+	/*
+	Option 1:
+		id[optional], title
+	*/
+	public function __construct()
 	{
 		$arg_list = func_get_args();
 		if(func_num_args() > 0){
 			switch (func_num_args()) {
 				case 1:
-					$this->setId($arg_list[0]);
+					if(!$this->setId($arg_list[0])){
+						$this->setTitle($arg_list[0]);
+					}
 					break;
 				case 2:
 					$this->setId($arg_list[0]);
@@ -24,13 +28,16 @@ class status{
 			}
 		}
 	}
-	
+
 	public function select()
 	{
 		if(is_int($this->getId())){
 			$db = new db();
 			$item = $db->select($this);
 			$item = $item[0];
+			if(!$item){
+				return false;
+			}
 			$this->setId($item['id']);
 			$this->setTitle($item['title']);
 			return true;
@@ -61,22 +68,8 @@ class status{
 	public function update()
 	{
 		$db = new db();
-		if($db->update($this)){
+		if($db->update($this)){		
 			return true;
-		}
-		return false;
-	}
-
-	public function getAll()
-	{
-		$db = new db();
-		$rows = $db->get_rows($this);
-		if($rows){
-			$result = array();
-			foreach ($rows as $row) {
-				$result[$row['id']] = $row;				
-			}
-			return $result;
 		}
 		return false;
 	}
@@ -89,11 +82,6 @@ class status{
 	public function getId()
 	{
 		return $this->id;
-	}
-
-	public function getDefaultValue()
-	{
-		return self::DEFAULT_VALUE;
 	}
 
 	public function getTitle()

@@ -45,6 +45,12 @@ class db{
 		return self::DDBB;
 	}
 
+	public function get_query($sql, $params)
+	{
+		$result = $this->query($sql, $params);
+		return $result;
+	}
+
 	public function get_rows($item, $params = null){
 		$table = $item->getTable();
 		$sql = "SELECT * FROM $table";
@@ -70,7 +76,7 @@ class db{
 	{
 		$params = array();
 		$table = $item->getTable();
-		if(method_exists($item, 'getId')){
+		if(!is_null($item->getId())){
 			$sql = "SELECT * FROM  $table WHERE id = ?";
 			$params = array($item->getId());
 		}else{
@@ -78,12 +84,14 @@ class db{
 			$first = true;
 			foreach($item->getAttr() AS $field => $param)
 			{
-				array_push($params, "$param");
-				if($first){
-					$sql .= $field . " = ?" . 
-					$first = false;
-				}else{
-					$sql .= ' AND ' . $field . " = ?";
+				if(strcmp($field, 'id') != 0){
+					array_push($params, "$param");
+					if($first){
+						$sql .= $field . " = ?" . 
+						$first = false;
+					}else{
+						$sql .= ' AND ' . $field . " = ?";
+					}
 				}
 			}
 		}
@@ -99,17 +107,17 @@ class db{
 		$table = $item->getTable();
 		foreach($item->getAttr() AS $field => $param)
 		{
-			if(strcmp($field, 'id') == 0){
-				$param = null;
+			if(strcmp($field, 'id') != 0){
+				array_push($fields, "`" . $field . "`");
+				array_push($params, "$param");
+				array_push($variables, '?');
 			}
-			array_push($fields, "`" . $field . "`");
-			array_push($params, "$param");
-			array_push($variables, '?');
 		}
 		$fields = implode(", ", $fields);
 		$variables = implode(", ", $variables);
 
 		$sql = "INSERT INTO $table ($fields) VALUES ($variables);";
+		
 		return $this->query($sql, $params);
 	}
 
@@ -157,10 +165,11 @@ class db{
 				}
 			}elseif(is_string($p)){
 				$types .= 's';
-				
 			}	
 		}
+
 		$stmt = $conn->prepare($sql);
+
 		if($types&&$params){
             $bind_names[] = $types;
             for ($i=0; $i<count($params);$i++) 
@@ -169,6 +178,7 @@ class db{
                 $$bind_name = $params[$i];
                 $bind_names[] = &$$bind_name;
             }
+
             $return = call_user_func_array(array($stmt,'bind_param'),$bind_names);
         }
 

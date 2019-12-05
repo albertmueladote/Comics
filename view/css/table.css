@@ -7,10 +7,55 @@ table tr th{
 }
 
 table tbody tr:nth-child(even){
-	background-color: #E8E8E8
+	background-color: #E8E8E8;
 }
 
 table tbody tr:hover{
 	background-color: #CDCDCD;
 	cursor: pointer;
+}
+
+.selector_yes, .selector_no{
+	width: 20px;
+	height: 20px;
+	background-size: 20px 20px;
+	background-repeat: no-repeat;
+	background-position: center;
+	padding: 5px;
+	border-radius: 50%;
+	cursor: pointer;
+	z-index: 2;
+	background-color: #CDCDCD;
+}
+
+.selector_yes:hover, .selector_no:hover{
+	background-color: black;
+}
+
+
+.selector_yes{
+	background-image: url('../media/si.png');
+}
+
+.selector_no{
+	background-image: url('../media/no.png');
+}
+
+.input_missing{
+	border: none;
+}
+
+.submit_missing{
+	height: 40px;
+	width: 40px;
+	background-size: 100%;
+	background-repeat: no-repeat;
+	background-position: center;
+	cursor: pointer;
+	z-index: 2;
+	background-image: url('../media/save.png');
+}
+
+.select_status{
+	border: none;
 }

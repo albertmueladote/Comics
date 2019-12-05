@@ -4,10 +4,13 @@ class compilation{
 
 	CONST TABLE = 'compilation';
 	private $id;
-	private $collection;
-	private $from;
-	private $to;
-
+	private $title;
+	private $book;
+	private $comic;
+	/*
+	Option 1:
+		id[optional], title
+	*/
 	public function __construct()
 	{
 		$arg_list = func_get_args();
@@ -16,16 +19,20 @@ class compilation{
 				case 1:
 					$this->setId($arg_list[0]);
 					break;
-				case 3:
-					$this->setCollection($arg_list[0]);
-					$this->setFrom($arg_list[1]);
-					$this->setTo($arg_list[2]);
+				case 2:
+					$this->setBook($arg_list[0]);
+					$this->setComic($arg_list[1]);
 					break;
-				case 4:
+				case 3:
 					$this->setId($arg_list[0]);
-					$this->setCollection($arg_list[1]);
-					$this->setFrom($arg_list[2]);
-					$this->setTo($arg_list[3]);
+					$this->setBook($arg_list[1]);
+					$this->setComic($arg_list[2]);
+					break;
+				case 3:
+					$this->setId($arg_list[0]);
+					$this->setTitle($arg_list[1]);
+					$this->setBook($arg_list[2]);
+					$this->setComic($arg_list[3]);
 					break;
 				default:
 					break;
@@ -38,13 +45,13 @@ class compilation{
 		if(is_int($this->getId())){
 			$db = new db();
 			$item = $db->select($this);
-			$this->setId($item['id']);
-			$this->setCollection($item['collection']);
-			$this->setFrom($item['from']);
-			$this->setTo($item['to']);
+			$item = $item[0];
 			if(!$item){
 				return false;
 			}
+			$this->setId($item['id']);
+			$this->setBook($item['book']);
+			$this->setComic($item['comic']);
 			return true;
 		}
 		return false;
@@ -53,8 +60,10 @@ class compilation{
 	public function insert()
 	{
 		$db = new db();
-		if($db->insert($this)){
-			return true;
+		if(!$this->select()){
+			if($db->insert($this)){
+				return true;
+			}
 		}
 		return false;
 	}
@@ -71,7 +80,7 @@ class compilation{
 	public function update()
 	{
 		$db = new db();
-		if($db->update($this)){
+		if($db->update($this)){		
 			return true;
 		}
 		return false;
@@ -87,19 +96,19 @@ class compilation{
 		return $this->id;
 	}
 
-	public function getCollection()
+	public function getTitle()
 	{
-		return $this->collection;
+		return $this->title;
 	}
 
-	public function getFrom()
+	public function getBook()
 	{
-		return $this->from;
+		return $this->book;
 	}
 
-	public function getTo()
+	public function getComic()
 	{
-		return $this->to;
+		return $this->comic;
 	}
 
 	public function setId($value)
@@ -113,29 +122,24 @@ class compilation{
 		return false;
 	}
 
-	public function setCollection($value)
+	public function setTitle($value)
 	{
-		if(is_int($value)){
-			$collection = new collection($value);
-			if($collection->select()){
-				$this->collection = $value;
+		if(is_string($value)){
+			if($value > 0){
+				$this->title = $value;
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public function setFrom($value)
+	public function setBook($value)
 	{
 		if(is_int($value)){
 			if($value > 0){
-				if(is_int($this->getTo())){
-					if($value < $this->getTo()){
-						$this->from = $value;
-						return true;
-					}
-				}else{
-					$this->from = $value;
+				$book = new book($value);
+				if($book->select()){
+					$this->book = $value;
 					return true;
 				}
 			}
@@ -143,22 +147,25 @@ class compilation{
 		return false;
 	}
 
-	public function setTo($value)
+	public function setComic($value)
 	{
 		if(is_int($value)){
 			if($value > 0){
-				if(is_int($this->getFrom())){
-					if($value > $this->getFrom()){
-						$this->to = $value;
-						return true;
-					}
-				}else{
-					$this->to = $value;
+				$comic = new comic($value);
+				if($comic->select()){
+					$this->comic = $value;
 					return true;
 				}
 			}
 		}
 		return false;
+	}
+
+	public function getAll()
+	{
+		$db = new db();
+		$rows = $db->get_rows($this);
+		return $rows;
 	}
 
 	public function getAttr() {

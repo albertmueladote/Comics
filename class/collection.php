@@ -6,77 +6,27 @@ class collection{
 	private $id;
 	private $title;
 	private $status;
-	private $from;
-	private $to;
-	private $complete;
-	private $possession;
-	private $missing;
-	private $finish;
 	/*
 	Option 1:
 		id[optional], title
-
-	Option 2:
-		id[optional], from, to
-
-	Option 3:
-		id[optional], title, from, to
-
-	Option 4:
-		id[optional], title, from, to, possession
-
-	Option 5:
-		id[optional], title, from, to, possesssion, complete
 	*/
 	public function __construct()
 	{
 		$arg_list = func_get_args();
 		if(func_num_args() > 0){
-			$i = 0;
-			if($this->setId($arg_list[0])){
-				$i++;
-			}
 			switch (func_num_args()) {
-				case 1 + $i:
-					if(!$this->setId($arg_list[0 + $i])){
-						$this->setTitle($arg_list[0 + $i]);
+				case 1:
+					if(!$this->setId($arg_list[0])){
+						$this->setTitle($arg_list[0]);
 					}
 					break;
-				case 2 + $i:
-					$this->setFrom($arg_list[0 + $i]);
-					$this->setTo($arg_list[1 + $i]);
-					$this->setPossession($arg_list[1 + $i] - $arg_list[0 + $i] + 1);
-					$this->setComplete($arg_list[1 + $i]);
-					$this->setMissing($this->getComplete() - $this->getPossession());
-					break;
-				case 3 + $i:
-					$this->setTitle($arg_list[0 + $i]);
-					$this->setFrom($arg_list[1 + $i]);
-					$this->setTo($arg_list[2 + $i]);
-					$this->setPossession($arg_list[2 + $i] - $arg_list[1 + $i] + 1);
-					$this->setComplete($arg_list[2 + $i]);
-					$this->setMissing($this->getComplete() - $this->getPossession());
-					break;
-				case 4 + $i:
-					$this->setTitle($arg_list[0 + $i]);
-					$this->setFrom($arg_list[1 + $i]);
-					$this->setTo($arg_list[2 + $i]);
-					$this->setPossession($arg_list[3 + $i]);
-					$this->setComplete($arg_list[2 + $i]);
-					$this->setMissing($this->getComplete() - $this->getPossession());
-					break;
-				case 5 + $i:
-					$this->setTitle($arg_list[0 + $i]);
-					$this->setFrom($arg_list[1 + $i]);
-					$this->setTo($arg_list[2 + $i]);
-					$this->setPossession($arg_list[3 + $i]);
-					$this->setComplete($arg_list[4 + $i]);
-					$this->setMissing($this->getComplete() - $this->getPossession());
+				case 2:
+					$this->setId($arg_list[0]);
+					$this->setTitle($arg_list[1]);
 					break;
 				default:
 					break;
 			}
-			$this->setFinish(0);
 			$this->setStatus($this->getDefaultStatus());
 		}
 	}
@@ -87,17 +37,12 @@ class collection{
 			$db = new db();
 			$item = $db->select($this);
 			$item = $item[0];
-			$this->setId($item['id']);
-			$this->setTitle($item['title']);
-			$this->setFrom($item['from']);
-			$this->setTo($item['to']);
-			$this->setPossession($item['possession']);
-			$this->setComplete($item['complete']);
-			$this->setMissing($item['missing']);
-			$this->setFinish($item['finish']);
 			if(!$item){
 				return false;
 			}
+			$this->setId($item['id']);
+			$this->setTitle($item['title']);
+			$this->setStatus($item['status']);
 			return true;
 		}
 		return false;
@@ -106,7 +51,7 @@ class collection{
 	public function insert()
 	{
 		$db = new db();
-		if(($this->getTo() - $this->getFrom() + 1) == ($this->getPossession() + $this->getMissing())){
+		if(!$db->select($this)){
 			if($db->insert($this)){
 				return true;
 			}
@@ -126,42 +71,12 @@ class collection{
 	public function update()
 	{
 		$db = new db();
-		if(($this->getTo() - $this->getFrom() + 1) == ($this->getPossession() + $this->getMissing())){
-			if($db->update($this)){		
-				return true;
-			}
+		if($db->update($this)){		
+			return true;
 		}
 		return false;
 	}
 
-	public function getAll()
-	{
-		$db = new db();
-		$rows = $db->get_rows($this);
-		if($rows){
-			$result = array();
-			$status = new status();
-			$status = $status->getAll();
-			foreach ($rows as $row){
-				$result[$row['id']] = $row;
-				$result[$row['id']]['status'] = $status[$row['status']]['title'];
-				if($row['finish'] == 0){
-						$result[$row['id']]['finish'] = 'Si';
-				}else{
-					$result[$row['id']]['finish'] = 'No';
-				}
-			}
-			return $result;
-		}
-		return false;
-	}
-
-	public function refresh()
-	{
-		$this->setMissing();
-		$this->setComplete();
-		$this->setPossession();
-	}
 
 	public function getTable()
 	{
@@ -187,36 +102,6 @@ class collection{
 	{
 		$status = new status();
 		return $status->getDefaultValue();
-	}
-
-	public function getFrom()
-	{
-		return $this->from;
-	}
-
-	public function getTo()
-	{
-		return $this->to;
-	}
-
-	public function getComplete()
-	{
-		return $this->complete;
-	}
-
-	public function getPossession()
-	{
-		return $this->possession;
-	}
-
-	public function getMissing()
-	{
-		return $this->missing;
-	}
-
-	public function getFinish()
-	{
-		return $this->missing;
 	}
 
 	public function setId($value)
@@ -253,117 +138,13 @@ class collection{
 		return false;
 	}
 
-	public function setFrom($value)
+	public function getAll()
 	{
-		if(is_int($value)){
-			if($value > 0){
-				if(is_int($this->getTo())){
-					if($value < $this->getTo()){
-						$this->from = $value;
-						return true;
-					}
-				}else{
-					$this->from = $value;
-					return true;
-				}
-			}
-		}
-		return false;
+		$db = new db();
+		$rows = $db->get_rows($this);
+		return $rows;
 	}
 
-	public function setTo($value)
-	{
-		if(is_int($value)){
-			if($value > 0){
-				if(is_int($this->getFrom())){
-					if($value > $this->getFrom()){
-						$this->to = $value;
-						return true;
-					}
-				}else{
-					$this->to = $value;
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	public function setComplete($value = null)
-	{
-		if(is_null($value)){
-			if(!is_null($this->getTo())){
-				$this->complete = $this->getTo();
-				return true;
-			}
-		}elseif(is_int($value)){
-			if($value > 0){
-				$this->complete = $value;
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public function setPossession($value = null)
-	{
-		
-		if(is_null($value)){
-			if(!is_null($this->getFrom()) && !is_null($this->getTo()) && !is_null($this->getMissing())){
-				$this->possession = $this->getTo() - $this->getFrom() + 1 - $this->getMissing();
-				return true;
-			}
-		}elseif(is_int($value)){
-			if($value > 0){
-				$this->possession = $value;
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public function setMissing($value = null)
-	{
-		if(is_null($value)){
-			if(!is_null($this->getId())){
-				$missing = new missing();
-				$result = $missing->getByCollection($this->getId());
-				if($missing){
-					$this->missing = sizeof($result);
-					return true;
-				}
-				$this->missing = 0;				
-			}
-		}elseif(is_int($value)){
-			if($value >= 0){
-				$this->missing = $value;
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public function setFinish($value = null)
-	{
-		if(is_null($value)){
-			if(!is_null($this->getMissing())){
-				$missing = new missing();
-				$result = $missing->getByCollection($this->getId());
-				if($missing){
-					$this->finish = 0;
-				}else{
-					$this->finish = 1;
-				}
-				return true;			
-			}
-		}elseif(is_int($value)){
-			if($value >= 0){
-				$this->missing = $value;
-				return true;
-			}
-		}
-		return false;
-	}
 	public function getAttr() {
 		$result = array();
         foreach($this as $var => $value) {

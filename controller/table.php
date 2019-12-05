@@ -1,7 +1,8 @@
 <?php
-$collection = new collection();
-$collections = $collection->getAll();
 
+$b = new book();
+$books = $b->getAll();
+var_dump($books);
 
 include("view/header.php");
 include("view/$session.php");

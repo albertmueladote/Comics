@@ -4,9 +4,9 @@ class sales{
 
 	CONST TABLE = 'sales';
 	private $id;
-	private $collection;
-	private $from;
-	private $to;
+	private $comic;
+	private $price;
+	private $date;
 
 	public function __construct()
 	{
@@ -17,24 +17,20 @@ class sales{
 					$this->setId($arg_list[0]);
 					break;
 				case 2:
-					$this->setCollection($arg_list[0]);
-					if(strcmp($arg_list[1], 'all') == 0){
-						$collection = new collection($this->getCollection());
-						$collection->select();
-						$this->setFrom($collection->getFrom());
-						$this->setTo($collection->getTo());
-					}
+					$this->setId($arg_list[0]);
+					$this->setComic($arg_list[1]);
 					break;
 				case 3:
-					$this->setCollection($arg_list[0]);
-					$this->setFrom($arg_list[1]);
-					$this->setTo($arg_list[2]);
+					$this->setId($arg_list[0]);
+					$this->setComic($arg_list[1]);
+					$this->setPrice($arg_list[2]);
+					$this->setDate(time());
 					break;
 				case 4:
 					$this->setId($arg_list[0]);
-					$this->setCollection($arg_list[1]);
-					$this->setFrom($arg_list[2]);
-					$this->setTo($arg_list[3]);
+					$this->setComic($arg_list[1]);
+					$this->setPrice($arg_list[2]);
+					$this->setDate($arg_list[3]);
 					break;
 				default:
 					break;
@@ -49,9 +45,9 @@ class sales{
 			$item = $db->select($this);
 			$item = $item[0];
 			$this->setId($item['id']);
-			$this->setCollection($item['collection']);
-			$this->setFrom($item['from']);
-			$this->setTo($item['to']);
+			$this->setComic($item['comic']);
+			$this->setPrice($item['price']);
+			$this->setDate($item['date']);
 			return true;
 		}
 		return false;
@@ -60,8 +56,10 @@ class sales{
 	public function insert()
 	{
 		$db = new db();
-		if($db->insert($this)){
-			return true;
+		if(!$db->select($this)){
+			if($db->insert($this)){
+				return true;
+			}
 		}
 		return false;
 	}
@@ -94,19 +92,19 @@ class sales{
 		return $this->id;
 	}
 
-	public function getCollection()
+	public function getComic()
 	{
 		return $this->collection;
 	}
 
-	public function getFrom()
+	public function getPrice()
 	{
-		return $this->from;
+		return $this->price;
 	}
 
-	public function getTo()
+	public function getDate()
 	{
-		return $this->to;
+		return $this->date;
 	}
 
 	public function setId($value)
@@ -120,52 +118,49 @@ class sales{
 		return false;
 	}
 
-	public function setCollection($value)
+	public function setComic($value)
 	{
 		if(is_int($value)){
-			$collection = new collection($value);
-			if($collection->select()){
-				$this->collection = $value;
+			$comic = new comic($value);
+			if($comic->select()){
+				$this->comic = $value;
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public function setFrom($value)
+	public function setPrice($value)
 	{
 		if(is_int($value)){
+			$value = floatval($value);
+		}
+		if(is_float($value)){
 			if($value > 0){
-				if(is_int($this->getTo())){
-					if($value < $this->getTo()){
-						$this->from = $value;
-						return true;
-					}
-				}else{
-					$this->from = $value;
-					return true;
-				}
+				$this->price = $value;
+				return true;
 			}
 		}
 		return false;
 	}
 
-	public function setTo($value)
+	
+	public function setDate($value)
 	{
 		if(is_int($value)){
 			if($value > 0){
-				if(is_int($this->getFrom())){
-					if($value > $this->getFrom()){
-						$this->to = $value;
-						return true;
-					}
-				}else{
-					$this->to = $value;
-					return true;
-				}
+				$this->date = $value;
+				return true;
 			}
 		}
 		return false;
+	}
+
+	public function getAll()
+	{
+		$db = new db();
+		$rows = $db->get_rows($this);
+		return $rows;
 	}
 
 	public function getAttr() {
